@@ -1,5 +1,12 @@
 # 跨平台日志解析工具完整设计方案
 
+> **实现状态注记（2026-09-27）**：本文档为原始需求设计快照。当前实现进度概览：
+> - ✅ 双端构建已落地：Web（`npm run dev`）+ Windows 单文件 EXE（`npm run build:exe`，独立 exe 零外部依赖）
+> - ✅ 插件化架构：text/csv/json/log/table-tree/hex 解析 + zip/gzip 压缩插件
+> - ✅ 四栏布局、独立文件树、动态渲染器（`<component :is>` + 动态 import 按需加载）、主题切换、CSS Variables 设计 token
+> - ⬜ 顶部聚合统计栏（4.2.1 之 GlobalStats）与插件配置注入表单（4.2.4）尚未实现，属后续需求范围
+> - 架构与工程约定详见 `AGENTS.md`；实现细节详见 `docs/getting-started.md`
+
 ## 1. 项目概述与技术选型
 
 ### 1.1 项目目标

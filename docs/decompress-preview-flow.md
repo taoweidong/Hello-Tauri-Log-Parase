@@ -1,6 +1,8 @@
 # 文件解压与查看详情全流程分析
 
 > 本文档基于 Hello-Tauri 项目源码（Vue 3 + Tauri 2 + TypeScript），梳理文件从上传到预览的完整链路，包含架构图、时序图、模块依赖图等 PlantUML 可视化展示。
+>
+> ⚠️ **2026-09-27 勘误**：本文档写作时（2026-07-05）Rust 侧尚有 commands.rs/file_ops.rs/decompress.rs 等自研命令层。此后项目架构调整——**Rust 侧仅保留 lib.rs/main.rs 壳层 + 官方 tauri-plugin-fs，全部解压/文件操作逻辑已收敛到 TS 层**（见 AGENTS.md「语言与职责边界」）。文中 PlantUML 的「Rust 后端」包图与自研 IPC 命令描述为历史快照，实际文件操作走 `@tauri-apps/plugin-fs` 官方插件。前端链路（Composables/插件系统/适配器）描述仍然准确。
 
 ---
 

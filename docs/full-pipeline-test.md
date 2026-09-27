@@ -12,7 +12,7 @@
 | P3 | Web 构建 | `npm run build` | 退出码 0，`build/web/` 产物生成 |
 | P4 | Rust 检查 | `cargo check` (workdir: src-tauri/) | 编译无错误 |
 | P5 | Rust 测试 | `cargo test` (workdir: src-tauri/) | 所有测试通过 |
-| P6 | Tauri EXE 打包 | `npm run tauri:build` | 退出码 0，EXE 文件生成 |
+| P6 | 单文件 EXE 打包 | `npm run build:exe` | 产物生成 + PE 导入表干净 + 资源内嵌完整 |
 | P7 | Web E2E 自动化测试 | `npx playwright test` | 所有场景通过 |
 
 ---
@@ -36,7 +36,7 @@ Agent 执行全流程测试时，按以下规则操作：
 
 ```powershell
 # 在项目根目录执行
-cd e:\GitHub\Hello-Tauri
+cd e:\GitHub\Hello-Tauri-Log-Parase
 
 # P1: 单元测试
 npx vitest run
@@ -55,8 +55,8 @@ cargo check
 cargo test
 cd ..
 
-# P6: Tauri EXE 打包
-npm run tauri:build
+# P6: 单文件 EXE 打包（绕开 tauri build，见 AGENTS.md 打包约束）
+npm run build:exe
 
 # P7: Web E2E 测试
 npx playwright test
@@ -222,36 +222,42 @@ cargo test
 
 ---
 
-## P6: Tauri EXE 打包
+## P6: 单文件 EXE 打包
+
+> **2026-09-27 更新**：打包入口从 `tauri:build` 迁移为 `build:exe`（tauri build 会覆盖 rustflags 导致 crt-static 失效，详见 AGENTS.md「单文件 exe 打包约束」）。
 
 ### 前置条件
 
-- P3（Web 构建）已通过
+- P3（Web 构建）已通过（脚本内部会自动重跑前端构建）
 - P4（Rust 检查）已通过
-- Rust 工具链已安装（rustc、cargo）
+- Rust **MSVC** 工具链（`rustup default stable-x86_64-pc-windows-msvc`）
 - Windows SDK（MSVC 链接器）
 
 ### 执行命令
 
 ```bash
-npm run tauri:build
+npm run build:exe                        # 一键完整打包
+scripts\build-exe.bat                    # 双击式入口（等价）
+node scripts/build-exe.mjs --skip-frontend   # Rust 迭代时跳过前端
 ```
 
 ### 产物
 
-- 输出目录：`src-tauri/target/release/bundle/`
-- EXE 文件：`src-tauri/target/release/日志解析工具.exe`（或 `hello-tauri.exe`）
+- 输出目录：`build/`
+- EXE 文件：`build/日志解析工具-<version>-x64.exe`（约 10 MB）
 
-### 通过标准
+### 通过标准（脚本自动验证）
 
 - 退出码为 0
-- EXE 文件存在且大小 > 1MB
-- 无编译错误
+- PE 导入表干净：无 WebView2Loader / VCRUNTIME / api-ms-win-crt 外部依赖（真正单文件）
+- 前端资源内嵌完整：dist 资源键明文全命中（当前 16/16）
+- 可选冒烟：双击 exe 或 `Start-Process` 验证窗口正常打开
 
 ### 配置说明
 
-- `tauri.conf.json` 中 `"targets": []` 跳过安装包（WiX/NSIS）生成
-- `beforeBuildCommand: "npm run build"` 会自动先执行前端构建
+- 脚本直调 `cargo build --release --features tauri/custom-protocol`（前端资源内嵌的生产模式开关）
+- `src-tauri/.cargo/config.toml` 的 `+crt-static` 静态链接 VC 运行时
+- cargo 产物统一输出到根 `target/`（`build.target-dir = "../target"`）
 - 窗口配置：1400×900，最小 800×600
 
 ### 常见失败修复
@@ -259,8 +265,9 @@ npm run tauri:build
 | 错误 | 修复 |
 |------|------|
 | linker not found | 安装 Visual Studio Build Tools (MSVC) |
-| cargo 网络超时 | 设置 `$env:https_proxy = ""` |
+| cargo 网络超时 | 设置 `$env:https_proxy = ""`（已配 rsproxy 镜像） |
 | 前端构建失败 | 先单独运行 `npm run build` 定位问题 |
+| PE 验报外部 DLL | 确认走 build:exe 而非 tauri build；确认 MSVC 工具链 |
 | icon 文件缺失 | 确认 `src-tauri/icons/icon.ico` 存在 |
 
 ---
@@ -411,11 +418,11 @@ jobs:
           node-version: 24
       - uses: dtolnay/rust-toolchain@stable
       - run: npm ci
-      - run: npm run tauri:build
+      - run: npm run build:exe --no-pause
       - uses: actions/upload-artifact@v4
         with:
           name: exe-output
-          path: src-tauri/target/release/bundle/
+          path: build/
 ```
 
 ---
@@ -457,5 +464,5 @@ Agent 每次执行全流程测试后，按以下格式记录结果：
 | `npm run test:watch` | Watch 模式单元测试 |
 | `npm run typecheck` | TypeScript 类型检查 |
 | `npm run build` | 生产构建（Web） |
-| `npm run tauri:build` | 打包桌面 EXE |
+| `npm run build:exe` | 打包独立单文件 EXE（产物 → `build/`） |
 | `npx playwright test` | E2E 自动化测试 |

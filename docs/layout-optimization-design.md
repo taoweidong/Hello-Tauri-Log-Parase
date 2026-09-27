@@ -15,7 +15,8 @@
 
 - 通过 `VITE_PLATFORM=web|tauri` 环境变量控制平台差异
 - `__PLATFORM__` 编译时常量 + `@adapter` 别名切换平台适配器
-- Tauri 构建：`tauri:build` → `npm run build`（vue-tsc + vite build）→ 产物输出到 `build/web/`
+- 生产构建：`npm run build`（vue-tsc + vite build）→ 产物输出到 `build/web/`
+- 桌面交付：`npm run build:exe` 一键单文件 exe（2026-09-27 起，详见 AGENTS.md 打包约束；`tauri:build` 已弃用）
 
 ### Tailwind CSS v4.3 兼容性验证
 

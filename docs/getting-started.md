@@ -40,9 +40,9 @@ Hello-Tauri 是一款**跨平台桌面数据工具**，采用单仓库（Monorep
     └──────────────┬───────────────────┘
                    │ (仅 Tauri 模式)
     ┌──────────────▼───────────────────┐
-    │         Tauri Rust 后端           │
-    │  commands.rs → file_ops.rs       │
-    │               → decompress.rs    │
+    │    Tauri Rust 壳层（src-tauri/）    │
+    │    lib.rs + tauri-plugin-fs       │
+    │    （仅打包/桌面壳，业务逻辑一律 TS） │
     └──────────────────────────────────┘
 ```
 
@@ -51,7 +51,7 @@ Hello-Tauri 是一款**跨平台桌面数据工具**，采用单仓库（Monorep
 2. **Composable 层**（`use-*.ts`）—— 业务逻辑入口，模块级 ref 单例
 3. **插件系统**（`src/plugins/`）—— 可扩展的解析与压缩能力
 4. **适配器层**（`src/adapters/`）—— 屏蔽 Web/Tauri 平台差异
-5. **Rust 后端**（`src-tauri/`）—— 原生文件操作与解压
+5. **Rust 壳层**（`src-tauri/`）—— 仅窗口管理与桌面打包，**不承载业务逻辑**（见 AGENTS.md 语言与职责边界约束）
 
 ---
 
@@ -122,21 +122,20 @@ Hello-Tauri/
 │   ├── App.vue               # 根组件（主题 Provider 包裹）
 │   └── main.ts               # 入口（Pinia + 缓存初始化）
 │
-├── src-tauri/                # Tauri Rust 后端
+├── src-tauri/                # Tauri 桌面壳层（仅打包，业务逻辑一律 TS）
 │   ├── src/
 │   │   ├── main.rs           # 二进制入口（仅调用 run()）
-│   │   ├── lib.rs            # Tauri 构建器，注册所有 IPC 命令
-│   │   ├── commands.rs       # 命令门面（路径校验 + 转发）
-│   │   ├── file_ops.rs       # 文件读写、mmap、目录遍历
-│   │   ├── decompress.rs     # ZIP/GZIP 解压
-│   │   └── error.rs          # 统一 AppError（thiserror）
+│   │   └── lib.rs            # Tauri 构建器，注册官方插件（tauri-plugin-fs）
+│   ├── .cargo/config.toml    # crt-static 静态链接 + target-dir 指向根 target/
 │   ├── capabilities/         # Tauri 2 IPC 权限声明
 │   │   └── default.json
-│   ├── Cargo.toml            # Rust 依赖
+│   ├── Cargo.toml            # Rust 依赖（tauri, tauri-plugin-fs）
 │   └── tauri.conf.json       # Tauri 配置
 │
+├── scripts/                  # 一键打包脚本（build-exe.bat / build-exe.mjs）
 ├── docs/                     # 项目文档
 ├── data/                     # 测试用数据文件
+├── target/                   # Rust/Cargo 编译产物（统一根目录，已 ignore）
 ├── vite.config.ts            # Vite 构建配置（平台切换核心）
 ├── vitest.config.ts          # 测试配置
 ├── tsconfig.json             # TypeScript 配置
@@ -177,23 +176,26 @@ interface ICompressionPlugin {
 
 **当前内置插件**：
 
-| 类型 | 插件名 | 支持格式 | 渲染组件 |
+| 类型 | 插件名 | 支持格式 | 渲染组件（动态加载） |
 |------|--------|---------|---------|
 | 解析 | text | .txt .md .cfg .ini .env .yaml .yml .toml | TextRenderer |
-| 解析 | csv | .csv | CsvRenderer |
-| 解析 | json | .json | JsonRenderer |
-| 解析 | log | .log | LogRenderer |
-| 解析 | hex | 任意二进制 | HexRenderer |
+| 解析 | csv | .csv .tsv | CsvRenderer |
+| 解析 | json | .json .jsonl | JsonRenderer |
+| 解析 | log | .log 及 APPLOG*/MSGLOG* 前缀 | LogRenderer |
+| 解析 | table-tree | *_table_tree.csv | TableTreeRenderer |
+| 解析 | hex | 任意二进制（显式选择时） | HexRenderer（内联定义） |
 | 压缩 | zip | .zip | — |
-| 压缩 | gzip | .gz .gzip | — |
+| 压缩 | gzip | .gz .gzip .tgz | — |
 
 **注册表（`PluginRegistry`）**：管理所有插件的注册、查找、启停，并提供 `safeParse`/`safeDecompress`（带 30 秒超时保护）。
+
+> 渲染器通过 `defineAsyncComponent(() => import(...))` 动态加载（2026-09-27 拆包优化），主 chunk 651 KB，渲染器按需加载。
 
 ---
 
 ### 4.2 适配器模式
 
-`src/adapters/types.ts` 定义了 `IPlatformAdapter` 接口，共 7 个方法：
+`src/adapters/types.ts` 定义了 `IPlatformAdapter` 接口，共 6 个方法：
 
 ```typescript
 interface IPlatformAdapter {
@@ -201,7 +203,6 @@ interface IPlatformAdapter {
   writeFile(path: string, data: Uint8Array): Promise<void>
   listFiles(dir: string): Promise<FileEntry[]>
   getTempDir(): Promise<string>
-  decompress(data: Uint8Array, format: string, outputDir: string): Promise<DecompressResult>
   mmapRead(path: string, offset: number, length: number): Promise<Uint8Array>
   streamRead(path: string): ReadableStream<Uint8Array>
 }
@@ -311,7 +312,7 @@ npm install
 | 测试（watch） | `npm run test:watch` | Vitest 监听模式 |
 | 单个测试 | `npx vitest run src/__tests__/core/search.test.ts` | 运行指定测试文件 |
 | 构建（Web） | `npm run build` | vue-tsc 编译 + Vite 打包到 `build/web/` |
-| 构建（桌面） | `npm run tauri:build` | 打包桌面应用 |
+| **打包单文件 exe** | `npm run build:exe` | 一键产出独立 exe 到 `build/`（见 AGENTS.md 打包约束） |
 | Rust 检查 | `cargo check`（在 `src-tauri/` 目录） | 检查 Rust 代码 |
 
 ### 5.4 Rust 工具链（Windows）
@@ -432,17 +433,18 @@ const props = defineProps<{ content: ParsedContent }>()
 ```typescript
 // src/plugins/parser/xml-plugin.ts
 import type { IFileParserPlugin } from '../types'
-import { matchesAnyExtension } from '../types'
+import { createExtensionMatcher } from '../helpers'
 import { parseXml } from '@/plugins/parsers/xml-parser'
-import XmlRenderer from '@/views/renderers/XmlRenderer.vue'
+import { defineAsyncComponent } from 'vue'
+
+/** XML 渲染器（动态导入，按需加载） */
+const XmlRenderer = defineAsyncComponent(() => import('@/views/renderers/XmlRenderer.vue'))
 
 /** XML 解析插件，支持 .xml 格式 */
 export const xmlPlugin: IFileParserPlugin = {
   name: 'xml',
   supportedExtensions: ['.xml'],
-  canParse(file) {
-    return matchesAnyExtension(file.name, this.supportedExtensions)
-  },
+  canParse: createExtensionMatcher(['.xml']),
   async parse(data: Uint8Array) {
     return parseXml(data)
   },
