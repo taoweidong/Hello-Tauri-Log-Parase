@@ -1,0 +1,2 @@
+# bat 脚本必须保持 CRLF 行尾（cmd 解析要求），防止跨平台 checkout 被转成 LF
+*.bat text eol=crlf

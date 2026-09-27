@@ -1,22 +1,25 @@
 @echo off
 REM ============================================================
-REM One-click single-file exe build script (build-exe.bat)
+REM One-click single-file exe build script (scripts\build-exe.bat)
 REM Output: build\LogParser-<version>-x64.exe (standalone, zero external DLL deps)
 REM
-REM The actual pipeline is in scripts\build-exe.mjs:
+REM The actual pipeline is in scripts\build-exe.mjs (same directory):
 REM   frontend build - cargo build (custom-protocol + crt-static)
 REM   - copy to build\ - PE import table check - asset embed check
 REM
 REM Usage:
-REM   Double-click this file, or run: build-exe.bat [args]
+REM   Double-click this file, or run: scripts\build-exe.bat [args]
 REM   --skip-frontend   skip frontend build (Rust iteration only)
 REM   --no-pause        do not pause at the end (CI / CLI usage)
 REM NOTE: keep this file pure ASCII - cmd parses it safely on any codepage
 REM ============================================================
 setlocal
 
-REM cd to script directory (project root), works from any location
-cd /d "%~dp0"
+REM capture script directory BEFORE any goto/shift (cmd resets %~dp0 context after labels)
+set "SCRIPT_DIR=%~dp0"
+
+REM cd to parent of script directory (project root), works from any location
+cd /d "%SCRIPT_DIR%.."
 
 set "NO_PAUSE="
 set "MJS_ARGS="
@@ -56,9 +59,8 @@ set "http_proxy="
 echo [build-exe] environment ready, building...
 echo.
 
-node scripts\build-exe.mjs %MJS_ARGS%
+node "%SCRIPT_DIR%build-exe.mjs" %MJS_ARGS%
 if errorlevel 1 goto fail
-
 echo.
 echo [build-exe] ===== DONE =====
 echo [build-exe] output is in build\ directory - standalone single-file exe

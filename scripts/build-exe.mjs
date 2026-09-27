@@ -16,10 +16,11 @@
  *
  * 环境要求：
  *   - MSVC 工具链（rustup default stable-x86_64-pc-windows-msvc）
- *   - src-tauri/.cargo/config.toml 配置了 +crt-static（已提交仓库）
+ *   - src-tauri/.cargo/config.toml 配置了 +crt-static 与 build.target-dir=../target（已提交仓库）
  *
  * 用法：
  *   npm run build:exe              # 完整打包
+ *   scripts/build-exe.bat          # 双击式入口（调用本脚本）
  *   node scripts/build-exe.mjs --skip-frontend   # 跳过前端构建（Rust 迭代时）
  */
 import { execSync } from 'node:child_process'
@@ -42,8 +43,8 @@ const skipFrontend = args.includes('--skip-frontend')
 /** 前端构建产物（tauri.conf.json 的 frontendDist） */
 const FRONTEND_DIST = join(BUILD_DIR, 'web')
 
-/** cargo 产物（src-tauri 内编译，标准 target 位置） */
-const CARGO_EXE = join(SRC_TAURI, 'target', 'release', 'hello-tauri.exe')
+/** cargo 产物（src-tauri/.cargo/config.toml 的 build.target-dir 统一输出到根 target/） */
+const CARGO_EXE = join(ROOT, 'target', 'release', 'hello-tauri.exe')
 
 /** 统一 log 前缀 */
 const log = (msg) => console.log(`\x1b[36m[build:exe]\x1b[0m ${msg}`)

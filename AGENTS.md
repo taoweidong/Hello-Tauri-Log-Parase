@@ -45,13 +45,14 @@ This file provides guidance to Qoder (qoder.com) when working with code in this 
 
 ```bash
 npm run build:exe                              # 完整打包（前端 + Rust + 验证）
+scripts\build-exe.bat                          # 双击式入口（调用同一 mjs 流水线）
 node scripts/build-exe.mjs --skip-frontend    # Rust 迭代时跳过前端构建
 ```
 
 - 产物：`build/日志解析工具-<version>-x64.exe`（当前约 10 MB）
 - **禁止使用 `tauri build`**：它会注入环境变量覆盖 `.cargo/config.toml` 的 rustflags，导致 `crt-static` 静态链接失效、产物携带 VC 运行时依赖
 - 脚本内部直调 `cargo build --release --features tauri/custom-protocol`（custom-protocol = 前端资源内嵌进 exe 的生产模式开关）
-- `src-tauri/.cargo/config.toml` 已配置 `+crt-static`（随仓库提交）
+- `src-tauri/.cargo/config.toml` 已配置 `+crt-static` 与 `build.target-dir = "../target"`（随仓库提交）
 - 打包后自动验证：① PE 导入表无外部 DLL 依赖 ② 前端资源内嵌完整（资源键明文命中）
 - 前端变更后需完整打包（勿只用 --skip-frontend，否则可能打陈旧资源；脚本已用 touch lib.rs 兜底）
 
@@ -81,7 +82,7 @@ $env:https_proxy = ""; $env:no_proxy = "*"
 - `build/web/` — Vite 生产构建
 - `build/node/` — vue-tsc 编译的配置文件
 - `build/app.tsbuildinfo` — TypeScript 增量信息
-- `src-tauri/target/` — Rust/Cargo（标准位置，不移动）
+- `target/`（项目根）— Rust/Cargo 编译产物（由 `src-tauri/.cargo/config.toml` 的 `build.target-dir` 统一指回根目录）
 
 ## 平台切换
 

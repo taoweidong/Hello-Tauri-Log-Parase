@@ -4,3 +4,8 @@
 #      因此打包一律走 scripts/build-exe.mjs（内部直调 cargo build）
 [target.x86_64-pc-windows-msvc]
 rustflags = ["-C", "target-feature=+crt-static"]
+
+# 编译产物统一输出到项目根 target/（与根 .gitignore 规则对应，避免双 target 目录）
+[build]
+target-dir = "../target"
+
