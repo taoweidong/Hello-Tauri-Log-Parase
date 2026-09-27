@@ -244,7 +244,7 @@ node scripts/build-exe.mjs --skip-frontend   # Rust 迭代时跳过前端
 ### 产物
 
 - 输出目录：`build/`
-- EXE 文件：`build/日志解析工具-<version>-x64.exe`（约 10 MB）
+- EXE 文件：`build/Hello-Tauri-Log-Parase-<version>-x64.exe`（约 10 MB）
 
 ### 通过标准（脚本自动验证）
 
