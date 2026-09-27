@@ -63,7 +63,6 @@ node scripts/build-exe.mjs --skip-frontend    # Rust 迭代时跳过前端构建
 |------|------|
 | `fflate` | 纯 JS 压缩/解压库，Web 端 ZIP 解压回退方案（无需 WASM） |
 | `splitpanes` | 可拖拽分栏布局（Workspace 区域的 SplitView） |
-| `vue-draggable-plus` | 文件树节点拖拽排序 |
 | `@tauri-apps/api` | Tauri 2 IPC 客户端，`invoke` 调用 Rust 后端命令 |
 
 ## Rust 工具链（Windows）
@@ -108,8 +107,7 @@ $env:https_proxy = ""; $env:no_proxy = "*"
 - `src/types/` — 共享领域类型（`FileEntry`、`DecompressResult`、`ArchiveStatus` 等 9 个）
 - `src/config/` — 应用常量（`layout.ts`：面板宽度默认值与边界）
 - `src/styles/` — 公共样式
-- `src/assets/` — 图标静态资源
-- `src/api/` — 后端 API 接口
+- `src/plugins/` — 文件解析与压缩插件
 
 ## 架构模式
 

@@ -16,3 +16,7 @@ src-tauri/gen/
 test-*.png
 test-results/
 playwright-report/
+release/
+dist/
+target/
+.idea/
