@@ -40,10 +40,53 @@ const hasContent = computed(() => !!activeTab.value?.content)
         min="10"
         max="24"
         v-model.number="globalFontSize"
-        class="w-20 h-1.5 accent-primary cursor-pointer"
+        class="font-slider"
         title="字体缩放"
       />
-      <span class="text-[11px] opacity-50 tabular-nums">{{ globalFontSize }}px</span>
+      <span class="text-[11px] opacity-50 tabular-nums w-9">{{ globalFontSize }}px</span>
     </div>
   </div>
 </template>
+
+<style scoped>
+/* 自定义字号滑块：细轨道 + 圆形 thumb，替换原生突兀样式 */
+.font-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 80px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--color-border-strong);
+  outline: none;
+  cursor: pointer;
+}
+.font-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  border: 2px solid var(--color-bg-surface);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-primary) 40%, transparent);
+  cursor: pointer;
+  transition: transform var(--duration-fast) var(--ease-out-quart),
+              box-shadow var(--duration-fast) var(--ease-out-quart);
+}
+.font-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.25);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 25%, transparent);
+}
+.font-slider::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  border: 2px solid var(--color-bg-surface);
+  cursor: pointer;
+  transition: transform var(--duration-fast) var(--ease-out-quart);
+}
+.font-slider::-moz-range-thumb:hover {
+  transform: scale(1.25);
+}
+</style>

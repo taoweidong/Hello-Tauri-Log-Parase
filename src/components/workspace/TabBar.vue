@@ -106,8 +106,13 @@ function handleCloseClick(e: MouseEvent, tabId: string) {
       </svg>
     </button>
 
-    <!-- 标签页列表 -->
-    <div ref="tabsContainerRef" class="tab-list" @scroll="checkOverflow">
+    <!-- 标签页列表（两端 mask 渐隐，避免生硬裁切） -->
+    <div
+      ref="tabsContainerRef"
+      class="tab-list"
+      :class="{ 'mask-left': showScrollLeft, 'mask-right': showScrollRight, 'mask-both': showScrollLeft && showScrollRight }"
+      @scroll="checkOverflow"
+    >
       <div
         v-for="tab in tabs"
         :key="tab.id"
@@ -183,7 +188,8 @@ function handleCloseClick(e: MouseEvent, tabId: string) {
   border: none;
   cursor: pointer;
   color: var(--color-text-secondary);
-  transition: color 0.15s, background 0.15s;
+  transition: color var(--duration-fast) var(--ease-out-quart),
+              background var(--duration-fast) var(--ease-out-quart);
 }
 .tab-scroll-btn:hover {
   color: var(--color-primary);
@@ -209,6 +215,20 @@ function handleCloseClick(e: MouseEvent, tabId: string) {
   display: none;
 }
 
+/* 两端渐隐遮罩（仅对应方向可滚动时启用，避免凭空渐隐） */
+.tab-list.mask-left {
+  mask-image: linear-gradient(to right, transparent 0, black 24px);
+  -webkit-mask-image: linear-gradient(to right, transparent 0, black 24px);
+}
+.tab-list.mask-right {
+  mask-image: linear-gradient(to left, transparent 0, black 24px);
+  -webkit-mask-image: linear-gradient(to left, transparent 0, black 24px);
+}
+.tab-list.mask-both {
+  mask-image: linear-gradient(to right, transparent 0, black 24px, black calc(100% - 24px), transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, transparent 0, black 24px, black calc(100% - 24px), transparent 100%);
+}
+
 /* ── 单个标签项 ── */
 .tab-item {
   display: flex;
@@ -224,7 +244,10 @@ function handleCloseClick(e: MouseEvent, tabId: string) {
   border-right: 1px solid var(--color-border);
   cursor: pointer;
   white-space: nowrap;
-  transition: background 0.15s, color 0.15s;
+  position: relative;
+  animation: fade-in-up var(--duration-fast) var(--ease-out-quart);
+  transition: background var(--duration-base) var(--ease-out-quart),
+              color var(--duration-base) var(--ease-out-quart);
 }
 .tab-item:hover {
   color: var(--color-text-primary);
@@ -233,8 +256,18 @@ function handleCloseClick(e: MouseEvent, tabId: string) {
 .tab-item.tab-active {
   color: var(--color-primary);
   background: var(--color-bg-base);
-  border-bottom: 2px solid var(--color-primary);
-  margin-bottom: -1px;
+  font-weight: 600;
+}
+/* 活动标签：顶部渐变发光指示条 */
+.tab-item.tab-active::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--color-primary), transparent);
+  opacity: 0.9;
 }
 .tab-item.tab-pinned {
   padding-right: 10px;
@@ -244,9 +277,6 @@ function handleCloseClick(e: MouseEvent, tabId: string) {
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 160px;
-}
-.tab-pin-icon {
-  display: none;
 }
 
 /* ── 关闭按钮 ── */
@@ -262,11 +292,28 @@ function handleCloseClick(e: MouseEvent, tabId: string) {
   background: transparent;
   cursor: pointer;
   color: var(--color-text-disabled);
-  transition: all 0.15s;
   padding: 0;
+  opacity: 0;
+  transform: scale(0.8);
+  transition: all var(--duration-fast) var(--ease-out-quart);
+}
+/* 悬停标签或按钮自身时显示关闭按钮 */
+.tab-item:hover .tab-close-btn,
+.tab-close-btn:focus-visible {
+  opacity: 1;
+  transform: scale(1);
 }
 .tab-close-btn:hover {
   color: var(--color-error);
   background: color-mix(in srgb, var(--color-error) 20%, transparent);
+  transform: scale(1.15);
+}
+
+/* 减少动效偏好下，关闭按钮直接可见 */
+@media (prefers-reduced-motion: reduce) {
+  .tab-close-btn {
+    opacity: 1;
+    transform: none;
+  }
 }
 </style>

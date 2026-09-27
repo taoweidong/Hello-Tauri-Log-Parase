@@ -27,6 +27,8 @@ import Workspace from '@/components/workspace/Workspace.vue'
 import PropertyPanel from '@/components/property-panel/PropertyPanel.vue'
 import GlobalStatusBar from '@/components/workspace/StatusBar.vue'
 import AppLogo from '@/components/shared/AppLogo.vue'
+import AppIcon, { type AppIconName } from '@/components/shared/AppIcon.vue'
+import { themeColorLabels } from '@/styles/theme'
 
 const store = useAppStore()
 const { leftCollapsed, rightCollapsed, leftWidth, rightWidth, collapseLeft, expandLeft, collapseRight, expandRight, toggleLeft, toggleRight, setLeftWidth, setRightWidth } = usePanelLayout()
@@ -109,7 +111,7 @@ const helpOptions: DropdownOption[] = [
         rel: 'noopener noreferrer',
         class: 'flex items-center gap-2 text-text-primary no-underline hover:text-primary transition-colors'
       }, [
-        h('svg', { viewBox: '0 0 24 24', fill: 'currentColor', class: 'w-4 h-4', innerHTML: '<path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>' }),
+        h(AppIcon, { name: 'github' as AppIconName, size: 16 }),
         h('span', 'GitHub 仓库')
       ])
   },
@@ -120,9 +122,9 @@ const helpOptions: DropdownOption[] = [
         href: SITE_LINKS.issue,
         target: '_blank',
         rel: 'noopener noreferrer',
-        class: 'flex items-center gap-2 text-text-primary noopener noreferrer hover:text-primary transition-colors'
+        class: 'flex items-center gap-2 text-text-primary no-underline hover:text-primary transition-colors'
       }, [
-        h('svg', { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': '2', 'stroke-linecap': 'round', 'stroke-linejoin': 'round', class: 'w-4 h-4', innerHTML: '<circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/>' }),
+        h(AppIcon, { name: 'issue' as AppIconName, size: 16 }),
         h('span', '问题反馈')
       ])
   }
@@ -130,12 +132,18 @@ const helpOptions: DropdownOption[] = [
 
 // ── 主题色切换 ──
 const currentThemeColor = ref<ThemeColorKey>('blue')
-const themeColorOptions: DropdownOption[] = [
-  { key: 'blue', label: '蓝色' },
-  { key: 'green', label: '绿色' },
-  { key: 'purple', label: '紫色' },
-  { key: 'orange', label: '橙色' },
-]
+/** 主题色下拉项：色点 + 名称 */
+const themeColorOptions: DropdownOption[] = (Object.keys(themeColors) as ThemeColorKey[]).map(key => ({
+  key,
+  label: () =>
+    h('span', { class: 'flex items-center gap-2' }, [
+      h('span', {
+        class: 'inline-block w-3 h-3 rounded-full shrink-0 border border-black/10',
+        style: { background: themeColors[key], boxShadow: `0 0 0 3px color-mix(in srgb, ${themeColors[key]} 20%, transparent)` }
+      }),
+      h('span', themeColorLabels[key])
+    ])
+}))
 /** 批量设置 CSS 自定义属性 */
 function setCssVars(vars: Record<string, string>) {
   const style = document.documentElement.style
@@ -179,11 +187,7 @@ function handleThemeColorSelect(key: string) {
         <!-- 帮助下拉菜单 -->
         <NDropdown trigger="hover" :options="helpOptions" placement="bottom-end">
           <NButton quaternary circle class="!w-8 !h-8" aria-label="帮助">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-[18px] h-[18px]">
-              <circle cx="12" cy="12" r="10"/>
-              <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
-              <line x1="12" y1="17" x2="12.01" y2="17"/>
-            </svg>
+            <AppIcon name="help" :size="18" />
           </NButton>
         </NDropdown>
 
@@ -199,8 +203,12 @@ function handleThemeColorSelect(key: string) {
           <template #trigger>
             <NButton quaternary circle class="!w-8 !h-8" @click="store.toggleTheme">
               <Transition name="icon-spin" mode="out-in">
-                <span v-if="store.isDarkTheme" key="moon" class="inline-block text-[15px] leading-none">☽</span>
-                <span v-else key="sun" class="inline-block text-[15px] leading-none">☼</span>
+                <span v-if="store.isDarkTheme" key="moon" class="inline-flex">
+                  <AppIcon name="moon" :size="16" />
+                </span>
+                <span v-else key="sun" class="inline-flex">
+                  <AppIcon name="sun" :size="16" />
+                </span>
               </Transition>
             </NButton>
           </template>
@@ -280,11 +288,9 @@ function handleThemeColorSelect(key: string) {
     <Transition name="drop-overlay">
       <div v-if="isDragging" class="absolute inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm pointer-events-none">
         <div class="flex flex-col items-center gap-4 px-14 py-10 border-2 border-dashed border-primary rounded-2xl bg-primary-soft text-primary">
-          <svg class="w-12 h-12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-            <polyline points="17 8 12 3 7 8"/>
-            <line x1="12" y1="3" x2="12" y2="15"/>
-          </svg>
+          <span class="animate-gentle-float">
+            <AppIcon name="upload" :size="44" :stroke-width="1.5" />
+          </span>
           <span class="text-base font-semibold tracking-[0.5px]">释放以上传压缩包</span>
         </div>
       </div>

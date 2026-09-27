@@ -60,9 +60,31 @@
   --radius-panel: 8px;
   --radius-card: 6px;
   --radius-button: 6px;
+
+  /* 动效 Token：缓动曲线 */
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* 动效 Token：时长 */
+  --duration-fast: 120ms;
+  --duration-base: 200ms;
+  --duration-smooth: 320ms;
 }
 
 @import "tailwindcss";
+
+/* ===== 动效工具类（Tailwind v4 自定义 utility） ===== */
+@utility animate-gentle-float {
+  animation: gentle-float 2.4s var(--ease-out-quart) infinite;
+}
+
+@utility animate-fade-in-up {
+  animation: fade-in-up var(--duration-smooth) var(--ease-out-quart) both;
+}
+
+@utility animate-status-breathe {
+  animation: status-breathe 2.4s ease-in-out infinite;
+}
 
 /* ===== 浅色主题覆盖 ===== */
 [data-theme='light'] {
@@ -121,6 +143,7 @@ body {
 ::-webkit-scrollbar-thumb {
   background: var(--color-border-strong);
   border-radius: 3px;
+  transition: background var(--duration-base) var(--ease-out-quart);
 }
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-text-secondary);
@@ -133,4 +156,72 @@ body {
 }
 .splitpanes__splitter:hover {
   background: var(--color-primary) !important;
+}
+
+/* ===== kbd 键帽全局样式 ===== */
+kbd {
+  display: inline-block;
+  padding: 1px 5px;
+  font-size: 11px;
+  line-height: 1.4;
+  font-family: inherit;
+  color: var(--color-text-secondary);
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border-strong);
+  border-bottom-width: 2px;
+  border-radius: 4px;
+  box-shadow: none;
+  white-space: nowrap;
+  user-select: none;
+}
+
+/* ===== 通用动画 keyframes ===== */
+
+/* 入场：淡入 + 上移（用于卡片/面板交错出现） */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 运行中状态：呼吸脉动（用于进行时指示器） */
+@keyframes status-breathe {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+/* 进度条纹流动（用于解压中进度条） */
+@keyframes progress-stripes {
+  from { background-position: 0 0; }
+  to { background-position: 24px 0; }
+}
+
+/* 轻浮动（用于拖放遮罩/上传区图标） */
+@keyframes gentle-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+/* 成功轻脉冲 */
+@keyframes success-pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+  100% { transform: scale(1); }
+}
+
+/* ===== 减少动效（无障碍）===== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

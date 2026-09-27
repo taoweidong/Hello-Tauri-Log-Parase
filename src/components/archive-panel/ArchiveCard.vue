@@ -8,6 +8,7 @@ import { NCard, NButton, NCollapseTransition } from 'naive-ui'
 import type { ArchiveItem } from '@/types'
 import StatusIndicator from './StatusIndicator.vue'
 import FileTree from './FileTree.vue'
+import AppIcon from '@/components/shared/AppIcon.vue'
 
 const props = defineProps<{
   archive: ArchiveItem
@@ -48,8 +49,10 @@ function toggleCollapse() {
     </template>
 
     <NCollapseTransition :show="!collapsed">
-      <div v-if="archive.status === 'failed'" class="text-error mb-2">
-        {{ archive.error }}
+      <!-- 失败：图标 + 错误信息 + 重试按钮 -->
+      <div v-if="archive.status === 'failed'" class="archive-error mb-2">
+        <span class="archive-error-icon"><AppIcon name="warning" :size="14" /></span>
+        <span class="flex-1 min-w-0 text-[12px] break-all">{{ archive.error }}</span>
         <NButton size="tiny" @click="emit('retry', archive.id)">重试</NButton>
       </div>
 
@@ -60,9 +63,10 @@ function toggleCollapse() {
       <!-- B1：业务清单外的未知文件提示 -->
       <div
         v-if="archive.unsupportedFiles && archive.unsupportedFiles.length > 0"
-        class="text-warning mb-2 text-xs"
+        class="archive-warn mb-2"
       >
-        ⚠️ {{ archive.unsupportedFiles.length }} 个文件不支持解压展示
+        <span class="archive-error-icon"><AppIcon name="warning" :size="14" /></span>
+        <span>{{ archive.unsupportedFiles.length }} 个文件不支持解压展示</span>
       </div>
 
       <FileTree
@@ -73,3 +77,31 @@ function toggleCollapse() {
     </NCollapseTransition>
   </NCard>
 </template>
+
+<style scoped>
+/* 失败信息行：轻红底 + 图标 + 可换行文本 */
+.archive-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 6px 8px;
+  border-radius: 4px;
+  color: var(--color-error);
+  background: color-mix(in srgb, var(--color-error) 8%, transparent);
+}
+.archive-warn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  color: var(--color-warning);
+  background: color-mix(in srgb, var(--color-warning) 8%, transparent);
+}
+.archive-error-icon {
+  display: inline-flex;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+</style>

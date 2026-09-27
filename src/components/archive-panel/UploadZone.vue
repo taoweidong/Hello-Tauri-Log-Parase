@@ -70,8 +70,8 @@ async function handleInputChange(e: Event) {
 
 <template>
   <div
-    class="cursor-pointer border border-dashed border-border rounded-md mr-1 transition-colors duration-200 hover:border-primary hover:bg-primary-soft/50"
-    :class="{ '!border-primary !bg-primary-soft/50': isDragging }"
+    class="upload-zone"
+    :class="{ 'upload-zone-active': isDragging }"
     @drop="handleDrop"
     @dragenter="handleDragEnter"
     @dragleave="handleDragLeave"
@@ -79,11 +79,13 @@ async function handleInputChange(e: Event) {
     @click="handleClick"
   >
     <div class="p-4 text-center pointer-events-none">
-      <svg class="w-6 h-6 mx-auto mb-2 text-text-secondary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-        <polyline points="17 8 12 3 7 8"/>
-        <line x1="12" y1="3" x2="12" y2="15"/>
-      </svg>
+      <span class="upload-icon" :class="{ 'upload-icon-float': isDragging }">
+        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="17 8 12 3 7 8"/>
+          <line x1="12" y1="3" x2="12" y2="15"/>
+        </svg>
+      </span>
       <NText depth="3">拖拽压缩包到此处，或点击上传</NText>
     </div>
     <input
@@ -96,3 +98,42 @@ async function handleInputChange(e: Event) {
     />
   </div>
 </template>
+
+<style scoped>
+/* 上传区域：虚线边框 + 拖入时高亮/上浮/图标浮动 */
+.upload-zone {
+  cursor: pointer;
+  border: 1px dashed var(--color-border-strong);
+  border-radius: 6px;
+  margin-right: 4px;
+  transition: border-color var(--duration-base) var(--ease-out-quart),
+              background-color var(--duration-base) var(--ease-out-quart),
+              transform var(--duration-base) var(--ease-out-quart),
+              box-shadow var(--duration-base) var(--ease-out-quart);
+}
+.upload-zone:hover {
+  border-color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 7%, transparent);
+}
+.upload-zone-active {
+  border-color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 10%, transparent);
+  transform: scale(1.01);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-primary) 15%, transparent);
+}
+
+/* 上传图标：拖入时轻浮动，暗示「可放置」 */
+.upload-icon {
+  display: inline-block;
+  margin-bottom: 8px;
+  color: var(--color-text-secondary);
+  transition: color var(--duration-base) var(--ease-out-quart);
+}
+.upload-zone:hover .upload-icon,
+.upload-zone-active .upload-icon {
+  color: var(--color-primary);
+}
+.upload-icon-float {
+  animation: gentle-float 1.6s ease-in-out infinite;
+}
+</style>

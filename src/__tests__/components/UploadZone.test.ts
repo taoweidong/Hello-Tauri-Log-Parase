@@ -37,8 +37,8 @@ describe('UploadZone', () => {
     const input = wrapper.find('input[type="file"]')
     const clickSpy = vi.spyOn(input.element as HTMLInputElement, 'click')
 
-    // 找到可点击的上传区域（第一个 .cursor-pointer）
-    const dropZone = wrapper.find('.cursor-pointer')
+    // 找到可点击的上传区域（.upload-zone 根元素）
+    const dropZone = wrapper.find('.upload-zone')
     await dropZone.trigger('click')
     expect(clickSpy).toHaveBeenCalled()
   })
@@ -47,40 +47,40 @@ describe('UploadZone', () => {
     const wrapper = mountUploadZone()
 
     // 初始状态无激活样式
-    expect(wrapper.find('.\\!border-primary').exists()).toBe(false)
+    expect(wrapper.find('.upload-zone-active').exists()).toBe(false)
 
     // 模拟 dragenter
-    const dropZone = wrapper.find('.cursor-pointer')
+    const dropZone = wrapper.find('.upload-zone')
     await dropZone.trigger('dragenter', {
       dataTransfer: new DataTransfer(),
     })
 
     // 应该有激活样式
-    const activeEl = wrapper.find('.\\!border-primary')
+    const activeEl = wrapper.find('.upload-zone-active')
     expect(activeEl.exists()).toBe(true)
   })
 
   it('dragleave 后取消激活样式', async () => {
     const wrapper = mountUploadZone()
-    const dropZone = wrapper.find('.cursor-pointer')
+    const dropZone = wrapper.find('.upload-zone')
 
     // 拖入
     await dropZone.trigger('dragenter', {
       dataTransfer: new DataTransfer(),
     })
-    expect(wrapper.find('.\\!border-primary').exists()).toBe(true)
+    expect(wrapper.find('.upload-zone-active').exists()).toBe(true)
 
     // 拖出
     await dropZone.trigger('dragleave')
     await nextTick()
 
     // 激活样式应消失
-    expect(wrapper.find('.\\!border-primary').exists()).toBe(false)
+    expect(wrapper.find('.upload-zone-active').exists()).toBe(false)
   })
 
   it('拖入非压缩包文件时保持提示不变', async () => {
     const wrapper = mountUploadZone()
-    const dropZone = wrapper.find('.cursor-pointer')
+    const dropZone = wrapper.find('.upload-zone')
 
     // 创建一个 txt 文件
     const file = new File(['hello'], 'test.txt', { type: 'text/plain' })
@@ -95,7 +95,7 @@ describe('UploadZone', () => {
 
   it('handleDrop 无文件时直接返回', async () => {
     const wrapper = mountUploadZone()
-    const dropZone = wrapper.find('.cursor-pointer')
+    const dropZone = wrapper.find('.upload-zone')
     // 不传文件
     const dt = new DataTransfer()
     await dropZone.trigger('drop', { dataTransfer: dt })
@@ -105,7 +105,7 @@ describe('UploadZone', () => {
 
   it('handleDragOver 阻止默认行为', async () => {
     const wrapper = mountUploadZone()
-    const dropZone = wrapper.find('.cursor-pointer')
+    const dropZone = wrapper.find('.upload-zone')
     await dropZone.trigger('dragover', { dataTransfer: new DataTransfer() })
     // 不报错即可
     expect(wrapper.exists()).toBe(true)
@@ -113,7 +113,7 @@ describe('UploadZone', () => {
 
   it('多次 dragenter 后 dragleave 到 0 才取消激活', async () => {
     const wrapper = mountUploadZone()
-    const dropZone = wrapper.find('.cursor-pointer')
+    const dropZone = wrapper.find('.upload-zone')
 
     // 两次 dragenter
     await dropZone.trigger('dragenter', { dataTransfer: new DataTransfer() })
@@ -122,11 +122,11 @@ describe('UploadZone', () => {
     // 一次 dragleave 不应取消
     await dropZone.trigger('dragleave')
     await nextTick()
-    expect(wrapper.find('.\\!border-primary').exists()).toBe(true)
+    expect(wrapper.find('.upload-zone-active').exists()).toBe(true)
 
     // 第二次 dragleave 应取消
     await dropZone.trigger('dragleave')
     await nextTick()
-    expect(wrapper.find('.\\!border-primary').exists()).toBe(false)
+    expect(wrapper.find('.upload-zone-active').exists()).toBe(false)
   })
 })
