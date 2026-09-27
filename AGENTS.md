@@ -103,6 +103,20 @@ $env:https_proxy = ""; $env:no_proxy = "*"
 - **插件注册表**：`PluginRegistry` 类，`safeParse`/`safeDecompress` 通过 `withTimeout` 包装 30 秒超时。
 - **解压管道**：`use-decompress.ts` — TaskScheduler(3) 并发控制，通过动态 import 接入 `use-archives.addFiles()`（避免 `use-archives` ↔ `use-decompress` 循环依赖）。流程：读取 ArrayBuffer → 检测压缩插件 → safeDecompress → FileTreeBuilder 构建树 → 更新 ArchiveItem 状态。
 
+## 语言与职责边界（核心项目约束）
+
+**优先使用 TypeScript 编码，尽量不使用 Rust 语言编写核心逻辑。**
+
+| 目录 | 职责 | 语言要求 |
+|------|------|---------|
+| `src-tauri/` | **仅做打包/桌面壳相关逻辑**（窗口管理、IPC 通道声明、构建配置） | Rust 仅限壳层胶水代码，不承载业务功能 |
+| `src/` | 前端 UI + 后端接口 + **全部主要业务逻辑** | TypeScript |
+
+新增功能决策规则：
+- 新功能默认用 TS 实现（`src/` 下的 `core/`、`plugins/`、`composables/` 等）。
+- 核心算法（解析、解压、搜索、文件树、任务调度等）一律放在 TS 层，**禁止下沉到 Rust**。
+- 仅当涉及 Tauri 桌面专属能力（窗口控制、系统能力桥接）且 TS 侧确实无法完成时，才允许在 `src-tauri/` 写**最小化** Rust 胶水代码，并保持其可替换性。
+
 ## 页面布局
 
 `AppLayout.vue` 实现四栏布局：顶部 `PublicBar`（48px）+ 左侧 `ArchivePanel`（可折叠侧栏）+ 中间 `Workspace`（标签页+预览）+ 右侧 `PropertyPanel`（可折叠侧栏）。使用 Naive UI 的 `NLayout`/`NLayoutSider` 组件，面板宽度由 Pinia store 管理。
