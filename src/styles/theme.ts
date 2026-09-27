@@ -8,19 +8,19 @@ export const themeColors = {
   orange: '#F59E0B',
 } as const
 
-/** 主题色中文名称（下拉菜单展示用） */
-const themeColorLabels: Record<ThemeColorKey, string> = {
-  blue: '蓝色',
-  green: '绿色',
-  purple: '紫色',
-  orange: '橙色',
-}
-
 /**
  * 主题色方案类型键
  * 可用于引用预定义的主题色标识
  */
 export type ThemeColorKey = keyof typeof themeColors
+
+/** 主题色中文名称（下拉菜单展示用） */
+export const themeColorLabels: Record<ThemeColorKey, string> = {
+  blue: '蓝色',
+  green: '绿色',
+  purple: '紫色',
+  orange: '橙色',
+}
 
 /**
  * Naive UI 全局主题覆盖配置
@@ -38,5 +38,3 @@ export const themeOverrides: GlobalThemeOverrides = {
     borderRadiusSmall: '4px',
   }
 }
-
-export { themeColorLabels }

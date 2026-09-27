@@ -1,6 +1,9 @@
 import type { IFileParserPlugin, ParseOptions } from '../types'
 import { decodeAndParseCsv } from '../helpers'
-import TableTreeRenderer from '@/views/renderers/TableTreeRenderer.vue'
+import { defineAsyncComponent } from 'vue'
+
+/** 表格+树形联动渲染器（动态导入，按需加载，减小主 chunk） */
+const TableTreeRenderer = defineAsyncComponent(() => import('@/views/renderers/TableTreeRenderer.vue'))
 
 /** 表格+树形联动解析插件，用于 *_table_tree.csv 类型文件 */
 export const tableTreePlugin: IFileParserPlugin = {

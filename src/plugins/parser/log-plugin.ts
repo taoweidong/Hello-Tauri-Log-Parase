@@ -1,7 +1,10 @@
 import type { IFileParserPlugin, ParseOptions } from '../types'
 import { createExtensionMatcher } from '../helpers'
 import { parseLog } from '@/plugins/parsers/log-parser'
-import LogRenderer from '@/views/renderers/LogRenderer.vue'
+import { defineAsyncComponent } from 'vue'
+
+/** 日志渲染器（动态导入，按需加载，减小主 chunk） */
+const LogRenderer = defineAsyncComponent(() => import('@/views/renderers/LogRenderer.vue'))
 
 /** 无扩展名日志文件的前缀匹配规则（APPLOG1/2/3、MSGLOG1/2/3） */
 const LOG_PREFIX_RE = /^(APPLOG|MSGLOG)/i
