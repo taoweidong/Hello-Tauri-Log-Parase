@@ -1,5 +1,5 @@
 [package]
-name = "hello-tauri"
+name = "hello-tauri-log-parase"
 version = "0.1.0"
 edition = "2021"
 

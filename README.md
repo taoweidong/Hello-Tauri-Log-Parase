@@ -1,4 +1,4 @@
-# Hello-Tauri — 跨平台日志解析工具
+# Hello-Tauri-Log-Parase — 跨平台日志解析工具
 
 基于 Vue 3 + Tauri 的微内核日志解析工具，支持 Web 和桌面双端构建。
 
@@ -117,7 +117,7 @@ npm run build:exe      # 桌面单文件 exe（产物 → build/）
 │   ├── Cargo.toml                # Rust 依赖（tauri, tauri-plugin-fs）
 │   └── tauri.conf.json           # Tauri 窗口/构建配置
 ├── scripts/                      # 一键打包脚本（build-exe.bat / build-exe.mjs）
-├── build/                        # 交付产物（日志解析工具-<版本>-x64.exe）
+├── build/                        # 交付产物（Hello-Tauri-Log-Parase-<版本>-x64.exe）
 ├── target/                       # Rust/Cargo 编译产物（统一根目录，已 ignore）
 └── docs/
     ├── design.md                                         # 产品需求文档

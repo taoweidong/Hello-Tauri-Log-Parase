@@ -2,7 +2,7 @@
 /**
  * 一键打包脚本：产出独立单文件 exe 到 build/ 目录
  *
- * 产物：build/日志解析工具-<version>-x64.exe（或 --name 指定名）
+ * 产物：build/Hello-Tauri-Log-Parase-<version>-x64.exe（或 --name 指定名）
  * 验证：自动做 PE 导入表检查（WebView2Loader / VCRUNTIME / UCRT 依赖检测）
  *       + 前端资源内嵌检查（资源键明文命中）
  *
@@ -44,7 +44,7 @@ const skipFrontend = args.includes('--skip-frontend')
 const FRONTEND_DIST = join(BUILD_DIR, 'web')
 
 /** cargo 产物（src-tauri/.cargo/config.toml 的 build.target-dir 统一输出到根 target/） */
-const CARGO_EXE = join(ROOT, 'target', 'release', 'hello-tauri.exe')
+const CARGO_EXE = join(ROOT, 'target', 'release', 'hello-tauri-log-parase.exe')
 
 /** 统一 log 前缀 */
 const log = (msg) => console.log(`\x1b[36m[build:exe]\x1b[0m ${msg}`)
@@ -162,7 +162,7 @@ if (!existsSync(CARGO_EXE)) {
 
 // ── 3. 复制到 build/ ──
 mkdirSync(BUILD_DIR, { recursive: true })
-const outName = `日志解析工具-${version}-x64.exe`
+const outName = `Hello-Tauri-Log-Parase-${version}-x64.exe`
 const outPath = join(BUILD_DIR, outName)
 copyFileSync(CARGO_EXE, outPath)
 const sizeMb = (statSync(outPath).size / 1024 / 1024).toFixed(1)

@@ -51,7 +51,7 @@ scripts\build-exe.bat                          # 双击式入口（调用同一 
 node scripts/build-exe.mjs --skip-frontend    # Rust 迭代时跳过前端构建
 ```
 
-- 产物：`build/日志解析工具-<version>-x64.exe`（当前约 10 MB）
+- 产物：`build/Hello-Tauri-Log-Parase-<version>-x64.exe`（当前约 10 MB）
 - **禁止使用 `tauri build`**：它会注入环境变量覆盖 `.cargo/config.toml` 的 rustflags，导致 `crt-static` 静态链接失效、产物携带 VC 运行时依赖
 - 脚本内部直调 `cargo build --release --features tauri/custom-protocol`（custom-protocol = 前端资源内嵌进 exe 的生产模式开关）
 - `src-tauri/.cargo/config.toml` 已配置 `+crt-static` 与 `build.target-dir = "../target"`（随仓库提交）
