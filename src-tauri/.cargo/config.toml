@@ -1,0 +1,6 @@
+# 打包配置：静态链接 C 运行时（crt-static）
+# 目标：单文件 exe，不依赖 VCRUNTIME140.dll / api-ms-win-crt-*.dll / WebView2Loader.dll
+# 注意：tauri build 会注入环境变量覆盖本配置（见 .workbuddy skill 经验），
+#      因此打包一律走 scripts/build-exe.mjs（内部直调 cargo build）
+[target.x86_64-pc-windows-msvc]
+rustflags = ["-C", "target-feature=+crt-static"]

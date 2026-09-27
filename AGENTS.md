@@ -32,11 +32,28 @@ This file provides guidance to Qoder (qoder.com) when working with code in this 
 | 测试（watch） | `npm run test:watch`（vitest） |
 | 单个测试 | `npx vitest run src/__tests__/core/search.test.ts` |
 | 构建（Web） | `npm run build`（vue-tsc -b && vite build） |
-| 构建（桌面） | `npm run tauri:build` |
+| **打包单文件 exe** | `npm run build:exe`（scripts/build-exe.mjs，产物 → `build/`） |
+| 构建（桌面，传统） | `npm run tauri:build`（**已弃用**，见打包约束） |
 | Rust 检查 | `cargo check`（workdir: src-tauri/） |
 | Rust 测试 | `cargo test`（workdir: src-tauri/） |
 
 未配置 lint 或格式化脚本。
+
+## 单文件 exe 打包约束（核心项目约定）
+
+**最终交付物是独立单文件 exe**（无 WebView2Loader / VCRUNTIME / UCRT 外部依赖），统一入口：
+
+```bash
+npm run build:exe                              # 完整打包（前端 + Rust + 验证）
+node scripts/build-exe.mjs --skip-frontend    # Rust 迭代时跳过前端构建
+```
+
+- 产物：`build/日志解析工具-<version>-x64.exe`（当前约 10 MB）
+- **禁止使用 `tauri build`**：它会注入环境变量覆盖 `.cargo/config.toml` 的 rustflags，导致 `crt-static` 静态链接失效、产物携带 VC 运行时依赖
+- 脚本内部直调 `cargo build --release --features tauri/custom-protocol`（custom-protocol = 前端资源内嵌进 exe 的生产模式开关）
+- `src-tauri/.cargo/config.toml` 已配置 `+crt-static`（随仓库提交）
+- 打包后自动验证：① PE 导入表无外部 DLL 依赖 ② 前端资源内嵌完整（资源键明文命中）
+- 前端变更后需完整打包（勿只用 --skip-frontend，否则可能打陈旧资源；脚本已用 touch lib.rs 兜底）
 
 ## 三方库依赖
 
