@@ -55,7 +55,8 @@ node scripts/build-exe.mjs --skip-frontend    # Rust 迭代时跳过前端构建
 - **禁止使用 `tauri build`**：它会注入环境变量覆盖 `.cargo/config.toml` 的 rustflags，导致 `crt-static` 静态链接失效、产物携带 VC 运行时依赖
 - 脚本内部直调 `cargo build --release --features tauri/custom-protocol`（custom-protocol = 前端资源内嵌进 exe 的生产模式开关）
 - `src-tauri/.cargo/config.toml` 已配置 `+crt-static` 与 `build.target-dir = "../target"`（随仓库提交）
-- 打包后自动验证：① PE 导入表无外部 DLL 依赖 ② 前端资源内嵌完整（资源键明文命中）
+- 打包后自动验证：① PE 导入表无外部 DLL 依赖 ② 前端资源内嵌完整（资源键明文命中）③ **PE 子系统必须为 Windows GUI(值 2)**，防止双击弹出黑色控制台窗口
+- **禁止删除 `src-tauri/src/main.rs` 顶部的 `#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]`**：缺它会使发布 exe 编译为 Console 子系统(值 3)，双击启动时 Windows 会分配一个黑色控制台窗口并流式打印日志，体验极差（debug 构建保留控制台以便联调）
 - 前端变更后需完整打包（勿只用 --skip-frontend，否则可能打陈旧资源；脚本已用 touch lib.rs 兜底）
 
 ## 三方库依赖

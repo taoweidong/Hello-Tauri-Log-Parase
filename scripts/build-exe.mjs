@@ -131,6 +131,19 @@ function verifyEmbeddedAssets(exePath) {
   return { hit, total: names.length }
 }
 
+/**
+ * PE 子系统校验：确认 exe 为 Windows GUI 子系统（值 2），
+ * 而非 Console 子系统（值 3）。Console 子系统双击启动会弹出黑色控制台窗口。
+ * 防止 main.rs 的 windows_subsystem 属性被误删导致黑窗回归。
+ */
+function verifySubsystem(exePath) {
+  const buf = readFileSync(exePath)
+  const pe = buf.readUInt32LE(0x3c)
+  const opt = pe + 24
+  const sub = buf.readUInt16LE(opt + 0x44) // OptionalHeader.Subsystem
+  return sub
+}
+
 // ═══════════ 主流程 ═══════════
 const { version, productName } = readTauriConfig()
 log(`目标：${productName} v${version} → build/`)
@@ -177,6 +190,15 @@ if (bad.length > 0) {
   process.exit(1)
 }
 logOk(`PE 导入表干净：${dlls.length} 个 DLL，全部为系统自带`)
+
+// ── 4.1 子系统校验（无黑窗回归保护）──
+const sub = verifySubsystem(outPath)
+if (sub !== 2) {
+  logErr(`❌ PE 子系统异常：值=${sub}（应为 2=Windows GUI）。Console 子系统会弹出黑窗`)
+  logErr('   排查：main.rs 是否含 `#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]`')
+  process.exit(1)
+}
+logOk(`PE 子系统：Windows GUI（无控制台窗口）`)
 
 const { hit, total } = verifyEmbeddedAssets(outPath)
 if (total === 0) {
