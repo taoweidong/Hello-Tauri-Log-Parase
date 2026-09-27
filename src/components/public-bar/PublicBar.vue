@@ -5,7 +5,7 @@
  */
 import { computed } from 'vue'
 import { NSpace, NButton, NDropdown, NText } from 'naive-ui'
-import { useNow } from '@vueuse/core'
+import { useNow, useRafFn } from '@vueuse/core'
 import { useArchiveManager } from '@/composables/use-archives'
 import { useTabManager } from '@/composables/use-tabs'
 import GlobalSearch from './GlobalSearch.vue'
@@ -13,8 +13,19 @@ import GlobalSearch from './GlobalSearch.vue'
 const { archives } = useArchiveManager()
 const { closeAll } = useTabManager()
 
-/** 实时时钟 - 每秒更新一次 */
-const now = useNow({ interval: 1000 })
+/** 实时时钟 - 每秒更新一次（vueuse 15 移除 useNow 的 interval 选项，改用 rAF 节流 scheduler） */
+const now = useNow({
+  scheduler: (cb) => {
+    let last = 0
+    return useRafFn(() => {
+      const t = Date.now()
+      if (t - last >= 1000) {
+        last = t
+        cb()
+      }
+    })
+  }
+})
 const currentTime = computed(() => {
   return now.value.toLocaleString('zh-CN', {
     year: 'numeric',

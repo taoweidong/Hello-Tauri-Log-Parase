@@ -6,20 +6,22 @@ This file provides guidance to Qoder (qoder.com) when working with code in this 
 
 所有对话回复、代码注释、commit 消息、文档内容必须使用**简体中文**。
 
-## 技术栈版本（2026-06-28 升级）
+## 技术栈版本（2026-09-27 升级）
 
 | 依赖 | 版本 |
 |------|------|
 | Node | `>=20`（当前 v24.13.0） |
 | Vue | ^3.5.39 |
 | Naive UI | ^2.44.1 |
-| Pinia | ^3.0.4 |
-| @vueuse/core | ^14.3.0 |
-| TypeScript | ~6.0.0 |
+| Pinia | ^4.0.3 |
+| @vueuse/core | ^15.0.0 |
+| TypeScript | ^6.0.3（TS7 与 vue-tsc 不兼容，刻意停留 6.x） |
 | Vite | ^8.1.0（使用 Rolldown） |
-| Vitest | ^4.1.9 |
+| Vitest | ^5.0.2 |
 | vue-tsc | ^3.3.5 |
-| Tauri CLI/API | ^2.11.3 / ^2.11.1 |
+| Tauri CLI/API/plugin-fs | ^2.12 / ^2.12 / ^2.5（npm 侧已 latest；Rust 侧 Cargo.toml 用 `"2"` 自动解析最新 2.x） |
+
+> 升级说明：2026-09-27 将全部三方库升至最新稳定版。`@vueuse/core@15` 移除了 `useNow` 的 `interval` 选项（`PublicBar.vue` 改用 `useRafFn` 节流 scheduler 保留每秒刷新）；vite 8 native config loader 不再支持 `__dirname`（`vite.config.ts` 改用 `import.meta.dirname`）。`typescript@7`（Go 原生编译器）删除了 `typescript/lib/tsc`，vue-tsc 3.3.x 无法运行，故 TS 停留在 6.0.3。
 
 ## 命令
 

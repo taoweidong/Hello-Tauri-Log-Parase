@@ -12,10 +12,10 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      '@': resolve(__dirname, 'src'),
+      '@': resolve(import.meta.dirname, 'src'),
       '@adapter': platform === 'tauri'
-        ? resolve(__dirname, 'src/adapters/tauri-adapter')
-        : resolve(__dirname, 'src/adapters/web-adapter')
+        ? resolve(import.meta.dirname, 'src/adapters/tauri-adapter')
+        : resolve(import.meta.dirname, 'src/adapters/web-adapter')
     }
   },
   build: {
