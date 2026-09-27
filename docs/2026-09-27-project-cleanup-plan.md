@@ -36,11 +36,11 @@
 | `vue-draggable-plus` | **全项目零 import**（src/ e2e/ 均无） | 移除（AGENTS.md 文档同步删除） |
 | `splitpanes` | 在用（`CsvTableTreeView` → `SplitView` → main.ts 引 CSS） | **保留** |
 
-## 三、代码级优化建议（本次不动，仅记录）
+## 三、代码级优化建议（✅ 已于 c077926 执行完毕）
 
-1. `index-B2oSRxVO.js` 主 chunk 790 KB —— 后续可做路由级/渲染器级动态 import 拆包
-2. `src/styles/theme.ts` 中 `themeColorLabels` 先 const 后 export（两段声明），可合并——纯风格问题，不值得动
-3. `data/` 测试样本（含 2 个 zip、万行 CSV）—— e2e 测试数据，保留
+1. ~~`index-B2oSRxVO.js` 主 chunk 790 KB~~ → **已拆包**：5 个渲染器改 `defineAsyncComponent` 动态导入，主 chunk 651 KB（-17.6%），派生 7 个按需 chunk（DataTable 119KB / CsvTableTreeView 19KB 等）
+2. ~~`theme.ts` 两段声明~~ → **已合并**为单处定义
+3. `data/` 测试样本（含 2 个 zip、万行 CSV）—— e2e 测试数据，**保留**
 
 ## 四、执行与验证
 
