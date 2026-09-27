@@ -25,7 +25,6 @@
 | `@tauri-apps/api` | ^2.11.1 | Tauri 2 IPC 客户端，`invoke` 调用 Rust 后端命令 |
 | `fflate` | ^0.8.3 | 纯 JS 压缩/解压库，Web 端 ZIP 解压回退（无需 WASM） |
 | `splitpanes` | ^4.1.2 | 可拖拽分栏布局，支持最小/最大尺寸约束 |
-| `vue-draggable-plus` | ^0.6.1 | Vue 拖拽排序组件，支持文件树节点拖拽 |
 
 ### 开发依赖
 
@@ -44,7 +43,7 @@
 ## 核心特性
 
 - **插件化架构** — 内置 text/csv/json/hex 解析插件 + zip/gzip 压缩插件，可按需扩展
-- **双端构建** — `vite build` 输出静态站点，`tauri build` 输出单文件 .exe
+- **单文件 exe 交付** — `npm run build:exe` 一键产出独立单文件 .exe（零外部 DLL 依赖，详见 AGENTS.md 打包约束）
 - **大文件友好** — mmap 零拷贝读取、虚拟滚动、分页加载
 - **多任务并发** — TaskScheduler 控制解压并发数，支持队列和重试
 
@@ -64,8 +63,8 @@ npm run typecheck
 npm test
 
 # 构建
-npm run build          # Web
-npm run tauri:build    # 桌面
+npm run build          # Web 静态站点
+npm run build:exe      # 桌面单文件 exe（产物 → build/）
 ```
 
 ## 项目结构
@@ -102,24 +101,24 @@ npm run tauri:build    # 桌面
 │   ├── components/
 │   │   ├── layout/AppLayout.vue  # 四栏布局（PublicBar / 左 / 中 / 右）
 │   │   ├── shared/ErrorBoundary.vue
-│   │   ├── public-bar/           # 顶部栏：GlobalStats + GlobalSearch + 批量操作
+│   │   ├── public-bar/           # 顶部栏：GlobalSearch + 批量操作
 │   │   ├── archive-panel/        # 左侧栏：UploadZone + ArchiveCard + FileTree
 │   │   ├── workspace/            # 中间区：TabBar + PreviewToolbar + PreviewPane + StatusBar
-│   │   └── property-panel/       # 右侧栏：MetadataView + ConfigForm + PathBreadcrumb
+│   │   └── property-panel/       # 右侧栏：MetadataView + PathBreadcrumb
 │   ├── styles/theme.ts           # Naive UI 主题覆盖配置
 │   ├── App.vue                   # 根组件（NConfigProvider → ErrorBoundary → AppLayout）
 │   └── main.ts                   # 入口（createPinia + mount）
-├── src-tauri/
+├── src-tauri/                    # 仅桌面壳层（打包约束见 AGENTS.md：业务逻辑一律 TS）
 │   ├── src/
-│   │   ├── lib.rs                # Tauri Builder 初始化 + 命令注册
-│   │   ├── main.rs               # 入口（调用 lib::run）
-│   │   ├── commands.rs           # IPC 命令（read_file, write_file, mmap_read, decompress 等）
-│   │   ├── file_ops.rs           # mmap 零拷贝读取 + 递归目录遍历
-│   │   ├── decompress.rs         # zip / gzip 原生解压
-│   │   └── error.rs              # AppError 枚举（Io, Decompress, NotFound）
+│   │   ├── lib.rs                # Tauri Builder 初始化 + 官方插件注册
+│   │   └── main.rs               # 入口（调用 lib::run）
+│   ├── .cargo/config.toml        # crt-static 静态链接 + target-dir 指向根 target/
 │   ├── capabilities/default.json # Tauri 2 权限配置
-│   ├── Cargo.toml                # Rust 依赖（tauri, memmap2, zip, flate2 等）
+│   ├── Cargo.toml                # Rust 依赖（tauri, tauri-plugin-fs）
 │   └── tauri.conf.json           # Tauri 窗口/构建配置
+├── scripts/                      # 一键打包脚本（build-exe.bat / build-exe.mjs）
+├── build/                        # 交付产物（日志解析工具-<版本>-x64.exe）
+├── target/                       # Rust/Cargo 编译产物（统一根目录，已 ignore）
 └── docs/
     ├── design.md                                         # 产品需求文档
     ├── superpowers/specs/2026-06-26-system-architecture-design.md  # 架构设计规格
